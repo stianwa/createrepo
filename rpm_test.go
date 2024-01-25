@@ -54,12 +54,12 @@ func TestReadParenthesis(t *testing.T) {
 		OK       bool
 	}
 	m := map[string]Expect{
-		"(GLIBC_2.3.4)(64bit)":  Expect{Elements: []string{"GLIBC_2.3.4", "64bit"}, OK: true},
-		"(GLIBC_2.3.4(64bit)":   Expect{Elements: []string{}, OK: false},
-		"(GLIBC_2.3.4)(64bit)a": Expect{Elements: []string{}, OK: false},
-		"(GLIBC_2.3.4(64bit))":  Expect{Elements: []string{}, OK: false},
-		"()":                    Expect{Elements: []string{""}, OK: true},
-		"(64bit)":               Expect{Elements: []string{"64bit"}, OK: true},
+		"(GLIBC_2.3.4)(64bit)":  {Elements: []string{"GLIBC_2.3.4", "64bit"}, OK: true},
+		"(GLIBC_2.3.4(64bit)":   {Elements: []string{}, OK: false},
+		"(GLIBC_2.3.4)(64bit)a": {Elements: []string{}, OK: false},
+		"(GLIBC_2.3.4(64bit))":  {Elements: []string{}, OK: false},
+		"()":                    {Elements: []string{""}, OK: true},
+		"(64bit)":               {Elements: []string{"64bit"}, OK: true},
 	}
 
 	for testCase, expect := range m {

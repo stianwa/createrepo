@@ -73,7 +73,7 @@ func (c *checksum) String() string {
 	return c.Type + " " + c.Data
 }
 
-// location represents the file path relative to reposity directory
+// location represents the file path relative to repository directory
 type location struct {
 	Href string `xml:"href,attr"`
 }
