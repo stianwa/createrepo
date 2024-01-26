@@ -40,42 +40,49 @@ func (h *history) write() error {
 	if err != nil {
 		return err
 	}
-
 	if _, err := writeFile(h.baseDir+"/"+historyXML, b); err != nil {
 		return err
 	}
-
 	return nil
 }
 
 // Clean cleans up revisions older than n seconds. If the current
 // *repoMD is passed, it will be spared from the cleanup process.
-func (h *history) Clean(seconds int64) error {
-	var newRevs []*revision
-
-	expires := time.Now().Unix() - seconds
-	bless := make(map[string]bool)
-
+func (h *history) Clean(seconds int64) (int, error) {
 	var lastRevision *revision
 	for _, r := range h.Revisions {
 		if lastRevision == nil || r.Revision > lastRevision.Revision {
 			lastRevision = r
 		}
 	}
-
 	if lastRevision == nil {
-		return fmt.Errorf("no current revision found in history")
+		return 0, fmt.Errorf("no current revision found in history")
 	}
 
 	// Bless all data files for lastRevision. One or more data
 	// sets might occur in a dirrerent Revision. The group dataset
 	// might be the same etc.
+	bless := make(map[string]bool)
 	for _, data := range lastRevision.Data {
 		bless[data.Location.Href] = true
 	}
 
+	now := time.Now().Unix()
+	expunged := 0
+	var newRevs []*revision
 	for _, r := range h.Revisions {
-		if r.Revision != lastRevision.Revision && r.Revision < expires {
+		if r.Revision == lastRevision.Revision {
+			newRevs = append(newRevs, r)
+			continue
+		}
+		if r.Obsoleted == 0 {
+			r.Obsoleted = now
+		}
+
+		fmt.Printf("now: %d >= obsoleted: %d + seconds: %d = %d\n",now, r.Obsoleted, seconds,  r.Obsoleted + seconds)
+			
+		if now >= r.Obsoleted + seconds {
+			expunged++
 			for _, data := range r.Data {
 				if data.Location != nil && data.Location.Href != "" {
 					if _, blessed := bless[data.Location.Href]; !blessed {
@@ -85,17 +92,23 @@ func (h *history) Clean(seconds int64) error {
 			}
 		} else {
 			newRevs = append(newRevs, r)
+
 		}
 	}
-	h.Revisions = newRevs
 
-	return h.write()
+	h.Revisions = newRevs
+	if err := h.write(); err != nil {
+		return 0, err
+	}
+	
+	return expunged, nil
 }
 
 // revision represents a single repoMD in the .history.xml file.
 type revision struct {
-	Revision int64   `xml:"revision"`
-	Data     []*data `xml:"data"`
+	Obsoleted int64   `xml:"obsoleted,omitempty"`
+	Revision int64    `xml:"revision"`
+	Data     []*data  `xml:"data"`
 }
 
 func (h *history) String() string {

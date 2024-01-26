@@ -41,37 +41,26 @@ func (r *Repo) Create() (*Summary, error) {
 	// Check to see if primary, filelists or group has changed
 	// from the old version. If it hasn't, leave everything
 	// unchanged.
+	same := false
 	if oldRepoMD != nil {
-		same := true
+		sameData := true
 		primary := false
 		filelists := false
 		for _, d := range oldRepoMD.Data {
 			switch d.Type {
 			case "primary":
-				same = same && d.sameChecksumAndExists(repoData.primary.OpenChecksum, r.baseDir)
+				sameData = sameData && d.sameChecksumAndExists(repoData.primary.OpenChecksum, r.baseDir)
 				primary = true
 			case "filelists":
-				same = same && d.sameChecksumAndExists(repoData.fileLists.OpenChecksum, r.baseDir)
+				sameData = sameData && d.sameChecksumAndExists(repoData.fileLists.OpenChecksum, r.baseDir)
 				filelists = true
 			case "group":
 				if repoData.comps != nil {
-					same = same && d.sameChecksumAndExists(repoData.comps.OpenChecksum, r.baseDir)
+					sameData = sameData && d.sameChecksumAndExists(repoData.comps.OpenChecksum, r.baseDir)
 				}
 			}
 		}
-		if same && primary && filelists {
-			// repo content is the same - do nothing
-			return summary, nil
-		}
-	}
-
-	repomd, err := repoData.writeData(r.baseDir, r.config.CompressAlgo)
-	if err != nil {
-		return nil, fmt.Errorf("write meta: %v", err)
-	}
-
-	if err := repomd.Write(); err != nil {
-		return nil, err
+		same = sameData && primary && filelists
 	}
 
 	hist, err := readHistory(r.baseDir)
@@ -81,15 +70,30 @@ func (r *Repo) Create() (*Summary, error) {
 	if hist == nil {
 		hist = newHistory(r.baseDir)
 	}
+	
+	if !same {
+		repomd, err := repoData.writeData(r.baseDir, r.config.CompressAlgo)
+		if err != nil {
+			return nil, fmt.Errorf("write meta: %v", err)
+		}
+		
+		if err := repomd.Write(); err != nil {
+			return nil, err
+		}
+		summary.Updated = true
 
-	hist.Append(repomd)
-	if err := hist.write(); err != nil {
-		return nil, err
+		hist.Append(repomd)
+		if err := hist.write(); err != nil {
+			return nil, err
+		}
 	}
+	
+	expunged, err := hist.Clean(r.config.ExpungeOldMetadata)
 
-	if hist.Clean(r.config.ExpungeOldMetadata); err != nil {
+	if err != nil {
 		return summary, err
 	}
-
+	summary.Expunged = expunged
+	
 	return summary, nil
 }

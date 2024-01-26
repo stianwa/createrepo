@@ -28,13 +28,11 @@ type Summary struct {
 	Dir     string
 	RPMs    int
 	Updated bool
+	Expunged int
 }
 
 func (s *Summary) String() string {
-	if s.Updated {
-		return fmt.Sprintf("%s: %d rpms, metadata updated", s.Dir, s.RPMs)
-	}
-	return fmt.Sprintf("%s: %d rpms, metadata not changed", s.Dir, s.RPMs)
+	return fmt.Sprintf("repo:%s rpms:%d expunged:%d repomd:%t", s.Dir, s.RPMs, s.Expunged, s.Updated)
 }
 
 // Repo represents the repo handler.
@@ -71,8 +69,11 @@ func NewRepo(dir string, config *Config) (*Repo, error) {
 		if c != nil {
 			config = c
 		} else {
-			config = &Config{WriteConfig: true, ExpungeOldMetadata: 172800}
+			config = &Config{WriteConfig: true}
 		}
+	}
+	if config.WriteConfig && config.ExpungeOldMetadata == 0 {
+		config.ExpungeOldMetadata = 172800
 	}
 
 	switch config.CompressAlgo {
