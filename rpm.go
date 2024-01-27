@@ -147,7 +147,7 @@ func getPackage(dir, name string) (*rpmPackage, *packageList, error) {
 
 	pkg, err := rpm.Open(path)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("%s: %v", path,err)
 	}
 
 	group := &group{Group: "Unspecified"}

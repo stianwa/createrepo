@@ -1,7 +1,6 @@
 package createrepo
 
 import (
-	"encoding/base64"
 	"fmt"
 	"github.com/pkg/xattr"
 	"strings"
@@ -19,11 +18,7 @@ func getXattrChecksum(name string) (*checksum, bool) {
 
 	switch fields[0] {
 	case "sha256":
-		data, err := base64.StdEncoding.DecodeString(fields[1])
-		if err != nil {
-			return nil, false
-		}
-		return &checksum{Type: "sha256", PkgID: "YES", Data: string(data)}, true
+		return &checksum{Type: "sha256", PkgID: "YES", Data: fields[1]}, true
 	}
 
 	return nil, false
