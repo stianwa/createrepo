@@ -14,6 +14,7 @@ type data struct {
 	Timestamp    *uint64   `xml:"timestamp"`
 	Size         *uint64   `xml:"size"`
 	OpenSize     *uint64   `xml:"open-size,omitempty"`
+	compressed   []byte    `xml:"-"`
 }
 
 // sameChecksumAndExists returns true if the two data elements have the same

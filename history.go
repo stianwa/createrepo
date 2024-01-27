@@ -78,8 +78,6 @@ func (h *history) Clean(seconds int64) (int, error) {
 		if r.Obsoleted == 0 {
 			r.Obsoleted = now
 		}
-
-		fmt.Printf("now: %d >= obsoleted: %d + seconds: %d = %d\n",now, r.Obsoleted, seconds,  r.Obsoleted + seconds)
 			
 		if now >= r.Obsoleted + seconds {
 			expunged++

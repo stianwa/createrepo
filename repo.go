@@ -4,7 +4,7 @@ package createrepo
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 )
 
 const (
@@ -46,11 +46,11 @@ type Repo struct {
 // will be read. If the file doesn't exist, a new default Config will
 // be created and saved to disk.
 func NewRepo(dir string, config *Config) (*Repo, error) {
-	baseDir := path.Clean(dir)
-
-	if baseDir == "" {
+	if dir == "" {
 		return nil, fmt.Errorf("dir is missing")
 	}
+
+	baseDir := filepath.Clean(dir)
 
 	fi, err := os.Stat(baseDir)
 	if err != nil {
@@ -63,7 +63,7 @@ func NewRepo(dir string, config *Config) (*Repo, error) {
 
 	if config == nil {
 		c, err := readConfig(baseDir)
-		if err != nil {
+		if err != nil && !os.IsNotExist(err) {
 			return nil, err
 		}
 		if c != nil {
@@ -72,8 +72,17 @@ func NewRepo(dir string, config *Config) (*Repo, error) {
 			config = &Config{WriteConfig: true}
 		}
 	}
-	if config.WriteConfig && config.ExpungeOldMetadata == 0 {
-		config.ExpungeOldMetadata = 172800
+	if config.WriteConfig {
+		if config.ExpungeOldMetadata == 0 {
+			config.ExpungeOldMetadata = 172800
+		}
+		if config.CompsFile != "" {
+			a, err := filepath.Abs(config.CompsFile)
+			if err != nil {
+				return nil, err
+			}
+			config.CompsFile = a
+		}
 	}
 
 	switch config.CompressAlgo {
@@ -81,7 +90,7 @@ func NewRepo(dir string, config *Config) (*Repo, error) {
 	case "":
 		config.CompressAlgo = "xz" // Default
 	default:
-		return nil, fmt.Errorf("bad compression algorithm: %s", config.CompressAlgo)
+		return nil, fmt.Errorf("unsupported compression algorithm: %s", config.CompressAlgo)
 	}
 
 	return &Repo{baseDir: baseDir, config: config}, nil

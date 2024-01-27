@@ -12,15 +12,11 @@ type Config struct {
 	// CompressAlgo specifies which compression algorithm to be
 	// used for compressing the meta files. Supported algorithms
 	// are: xz (default) and gz.
-	CompressAlgo string `yaml:"compressAlgo"`
+	CompressAlgo string `yaml:"compressAlgo,omitempty"`
 
 	// CompsFile specifies a path to a comps group (yumgroup)
 	// file, if used.
-	CompsFile string `yaml:"compsFile"`
-
-	// XattrCache specifies whether or not to use XATTRS for
-	// caching RPM meta data. The default is true.
-	XattrCache bool `yaml:"xattrCache"`
+	CompsFile string `yaml:"compsFile,omitempty"`
 
 	// ExpungeOldMetadata specifies the time in seconds when old
 	// metadata should be deleted from disk and history. The

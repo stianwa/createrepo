@@ -38,31 +38,6 @@ func (r *Repo) Create() (*Summary, error) {
 
 	summary := &Summary{Dir: r.baseDir, RPMs: len(repoData.primary.Packages)}
 
-	// Check to see if primary, filelists or group has changed
-	// from the old version. If it hasn't, leave everything
-	// unchanged.
-	same := false
-	if oldRepoMD != nil {
-		sameData := true
-		primary := false
-		filelists := false
-		for _, d := range oldRepoMD.Data {
-			switch d.Type {
-			case "primary":
-				sameData = sameData && d.sameChecksumAndExists(repoData.primary.OpenChecksum, r.baseDir)
-				primary = true
-			case "filelists":
-				sameData = sameData && d.sameChecksumAndExists(repoData.fileLists.OpenChecksum, r.baseDir)
-				filelists = true
-			case "group":
-				if repoData.comps != nil {
-					sameData = sameData && d.sameChecksumAndExists(repoData.comps.OpenChecksum, r.baseDir)
-				}
-			}
-		}
-		same = sameData && primary && filelists
-	}
-
 	hist, err := readHistory(r.baseDir)
 	if err != nil {
 		return nil, err
@@ -70,8 +45,9 @@ func (r *Repo) Create() (*Summary, error) {
 	if hist == nil {
 		hist = newHistory(r.baseDir)
 	}
-	
-	if !same {
+
+	// If not the same data content, create new
+	if ! r.sameDataContent(oldRepoMD, repoData) {
 		repomd, err := repoData.writeData(r.baseDir, r.config.CompressAlgo)
 		if err != nil {
 			return nil, fmt.Errorf("write meta: %v", err)
@@ -96,4 +72,41 @@ func (r *Repo) Create() (*Summary, error) {
 	summary.Expunged = expunged
 	
 	return summary, nil
+}
+
+func (r *Repo) sameDataContent(old *repoMD, fresh *dataSet) bool {
+	if old == nil || fresh == nil {
+		return false
+	}
+
+	var primary, fileLists, comps *data
+	for _, d := range old.Data {
+		switch d.Type {
+		case "primary":
+			primary = d
+		case "filelists":
+			fileLists = d
+		case "group":
+			comps = d
+		}
+	}
+
+	if fresh.primary == nil || primary == nil || fresh.fileLists == nil || fileLists == nil {
+		return false
+	}
+
+	if ! (comps == nil && fresh.comps == nil || comps != nil && fresh.comps != nil) {
+		return false
+	}
+
+	if ! (primary.sameChecksumAndExists(fresh.primary.OpenChecksum, r.baseDir) &&
+		fileLists.sameChecksumAndExists(fresh.fileLists.OpenChecksum, r.baseDir)) {
+		return false
+	}
+	
+	if fresh.comps != nil && ! comps.sameChecksumAndExists(fresh.comps.OpenChecksum, r.baseDir) {
+		return false
+	}
+
+	return true
 }
