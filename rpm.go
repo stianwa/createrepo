@@ -255,22 +255,27 @@ func getDependencies(deps []rpm.Dependency, provides map[entry]bool) ([]*entry, 
 			continue
 		}
 
-		// "Enable" epoch only if we have a version
-		epoch := ""
-		if d.Version() != "" {
-			epoch = fmt.Sprintf("%d", d.Epoch())
-		}
-
-		flags, pre := getFlag(d.Flags())
-
-		var ver, rel string
+		var epoch, ver, rel string
 		ver = d.Version()
-		if n := strings.Index(ver, "-"); n > 1 {
-			rel = ver[n+1:]
-			ver = ver[0:n]
-		} else {
-			rel = d.Release()
+		if ver != "" {
+			if n := strings.Index(ver, ":"); n > 0 {
+				epoch = ver[0:n]
+				ver = ver[n+1:]
+			}
+			if n := strings.Index(ver, "-"); n > 1 {
+				rel = ver[n+1:]
+				ver = ver[0:n]
+			} else {
+				rel = d.Release()
+			}
+			if epoch == "" && d.Epoch() != 0 {
+				epoch = fmt.Sprintf("%d", d.Epoch())
+			}
 		}
+
+		fmt.Printf("e:%s v:%s r:%s\n", epoch, ver, rel)
+		
+		flags, pre := getFlag(d.Flags())
 
 		c := &entry{
 			Name:    d.Name(),

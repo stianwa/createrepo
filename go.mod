@@ -1,6 +1,6 @@
 module github.com/stianwa/createrepo
 
-go 1.21
+go 1.21.6
 
 require (
 	github.com/cavaliergopher/rpm v1.2.0
