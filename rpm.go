@@ -272,8 +272,6 @@ func getDependencies(deps []rpm.Dependency, provides map[entry]bool) ([]*entry, 
 				epoch = fmt.Sprintf("%d", d.Epoch())
 			}
 		}
-
-		fmt.Printf("e:%s v:%s r:%s\n", epoch, ver, rel)
 		
 		flags, pre := getFlag(d.Flags())
 
