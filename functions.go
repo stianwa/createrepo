@@ -64,7 +64,7 @@ func getChecksumOfBytes(data []byte) *checksum {
 	h := sha256.New()
 
 	h.Write(data)
-	
+
 	return &checksum{
 		Type:  "sha256",
 		PkgID: "YES",

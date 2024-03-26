@@ -80,14 +80,17 @@ type location struct {
 
 // format represents package format meta
 type format struct {
-	License   *license   `xml:"rpm:license"`
-	Vendor    *vendor    `xml:"rpm:vendor"`
-	Group     *group     `xml:"rpm:group"`
-	BuildHost *buildHost `xml:"rpm:buildhost"`
-	SourceRPM *sourceRPM `xml:"rpm:sourcerpm"`
-	Provides  []*entry   `xml:"rpm:provides>rpm:entry,omitempty"`
-	Requires  []*entry   `xml:"rpm:requires>rpm:entry,omitempty"`
-	Obsoletes []*entry   `xml:"rpm:obsoletes>rpm:entry,omitempty"`
+	License    *license   `xml:"rpm:license"`
+	Vendor     *vendor    `xml:"rpm:vendor"`
+	Group      *group     `xml:"rpm:group"`
+	BuildHost  *buildHost `xml:"rpm:buildhost"`
+	SourceRPM  *sourceRPM `xml:"rpm:sourcerpm"`
+	Provides   []*entry   `xml:"rpm:provides>rpm:entry,omitempty"`
+	Requires   []*entry   `xml:"rpm:requires>rpm:entry,omitempty"`
+	Conflicts  []*entry   `xml:"rpm:conflicts>rpm:entry,omitempty"`
+	Obsoletes  []*entry   `xml:"rpm:obsoletes>rpm:entry,omitempty"`
+	Suggests   []*entry   `xml:"rpm:suggests>rpm:entry,omitempty"`
+	Recommends []*entry   `xml:"rpm:recommends>rpm:entry,omitempty"`
 }
 
 // license represents package license
@@ -147,7 +150,7 @@ func getPackage(dir, name string) (*rpmPackage, *packageList, error) {
 
 	pkg, err := rpm.Open(path)
 	if err != nil {
-		return nil, nil, fmt.Errorf("%s: %v", path,err)
+		return nil, nil, fmt.Errorf("%s: %v", path, err)
 	}
 
 	group := &group{Group: "Unspecified"}
@@ -159,6 +162,9 @@ func getPackage(dir, name string) (*rpmPackage, *packageList, error) {
 	provides, providesMap := getDependencies(pkg.Provides(), nil)
 	requires, _ := getDependencies(pkg.Requires(), providesMap)
 	obsoletes, _ := getDependencies(pkg.Obsoletes(), nil)
+	conflicts, _ := getDependencies(pkg.Conflicts(), nil)
+	suggests, _ := getDependencies(pkg.Suggests(), nil)
+	recommends, _ := getDependencies(pkg.Recommends(), nil)
 
 	p := &rpmPackage{
 		Type: "rpm",
@@ -185,14 +191,17 @@ func getPackage(dir, name string) (*rpmPackage, *packageList, error) {
 			Archive:   fmt.Sprintf("%d", pkg.ArchiveSize()),
 		},
 		Format: &format{
-			License:   &license{License: pkg.License()},
-			Vendor:    &vendor{Vendor: pkg.Vendor()},
-			Group:     group,
-			BuildHost: &buildHost{BuildHost: pkg.BuildHost()},
-			SourceRPM: &sourceRPM{SourceRPM: pkg.SourceRPM()},
-			Provides:  provides,
-			Requires:  requires,
-			Obsoletes: obsoletes,
+			License:    &license{License: pkg.License()},
+			Vendor:     &vendor{Vendor: pkg.Vendor()},
+			Group:      group,
+			BuildHost:  &buildHost{BuildHost: pkg.BuildHost()},
+			SourceRPM:  &sourceRPM{SourceRPM: pkg.SourceRPM()},
+			Provides:   provides,
+			Requires:   requires,
+			Conflicts:  conflicts,
+			Obsoletes:  obsoletes,
+			Suggests:   suggests,
+			Recommends: recommends,
 		},
 	}
 
@@ -235,7 +244,7 @@ func getDependencies(deps []rpm.Dependency, provides map[entry]bool) ([]*entry, 
 
 	for _, d := range deps {
 		// Compare versins if dependency starts with "libc.so.6"
-		if strings.HasPrefix(d.Name(), "libc.so.6") {
+		if false && strings.HasPrefix(d.Name(), "libc.so.6") {
 			if libc == nil {
 				libc = d
 				continue
@@ -272,7 +281,7 @@ func getDependencies(deps []rpm.Dependency, provides map[entry]bool) ([]*entry, 
 				epoch = fmt.Sprintf("%d", d.Epoch())
 			}
 		}
-		
+
 		flags, pre := getFlag(d.Flags())
 
 		c := &entry{

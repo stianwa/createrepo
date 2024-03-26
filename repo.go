@@ -25,9 +25,9 @@ const (
 
 // Summary represents the Create summary.
 type Summary struct {
-	Dir     string
-	RPMs    int
-	Updated bool
+	Dir      string
+	RPMs     int
+	Updated  bool
 	Expunged int
 }
 

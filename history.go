@@ -78,8 +78,8 @@ func (h *history) Clean(seconds int64) (int, error) {
 		if r.Obsoleted == 0 {
 			r.Obsoleted = now
 		}
-			
-		if now >= r.Obsoleted + seconds {
+
+		if now >= r.Obsoleted+seconds {
 			expunged++
 			for _, data := range r.Data {
 				if data.Location != nil && data.Location.Href != "" {
@@ -98,15 +98,15 @@ func (h *history) Clean(seconds int64) (int, error) {
 	if err := h.write(); err != nil {
 		return 0, err
 	}
-	
+
 	return expunged, nil
 }
 
 // revision represents a single repoMD in the .history.xml file.
 type revision struct {
 	Obsoleted int64   `xml:"obsoleted,omitempty"`
-	Revision int64    `xml:"revision"`
-	Data     []*data  `xml:"data"`
+	Revision  int64   `xml:"revision"`
+	Data      []*data `xml:"data"`
 }
 
 func (h *history) String() string {

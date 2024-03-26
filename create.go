@@ -47,12 +47,12 @@ func (r *Repo) Create() (*Summary, error) {
 	}
 
 	// If not the same data content, create new
-	if ! r.sameDataContent(oldRepoMD, repoData) {
+	if !r.sameDataContent(oldRepoMD, repoData) {
 		repomd, err := repoData.writeData(r.baseDir, r.config.CompressAlgo)
 		if err != nil {
 			return nil, fmt.Errorf("write meta: %v", err)
 		}
-		
+
 		if err := repomd.Write(); err != nil {
 			return nil, err
 		}
@@ -63,14 +63,14 @@ func (r *Repo) Create() (*Summary, error) {
 			return nil, err
 		}
 	}
-	
+
 	expunged, err := hist.Clean(r.config.ExpungeOldMetadata)
 
 	if err != nil {
 		return summary, err
 	}
 	summary.Expunged = expunged
-	
+
 	return summary, nil
 }
 
@@ -95,16 +95,16 @@ func (r *Repo) sameDataContent(old *repoMD, fresh *dataSet) bool {
 		return false
 	}
 
-	if ! (comps == nil && fresh.comps == nil || comps != nil && fresh.comps != nil) {
+	if !(comps == nil && fresh.comps == nil || comps != nil && fresh.comps != nil) {
 		return false
 	}
 
-	if ! (primary.sameChecksumAndExists(fresh.primary.OpenChecksum, r.baseDir) &&
+	if !(primary.sameChecksumAndExists(fresh.primary.OpenChecksum, r.baseDir) &&
 		fileLists.sameChecksumAndExists(fresh.fileLists.OpenChecksum, r.baseDir)) {
 		return false
 	}
-	
-	if fresh.comps != nil && ! comps.sameChecksumAndExists(fresh.comps.OpenChecksum, r.baseDir) {
+
+	if fresh.comps != nil && !comps.sameChecksumAndExists(fresh.comps.OpenChecksum, r.baseDir) {
 		return false
 	}
 

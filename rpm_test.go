@@ -28,11 +28,11 @@ func TestCompareLibC(t *testing.T) {
 			a = b
 			continue
 		}
-		c := compareClib(a, b)
-		fmt.Printf("compareClib(%s, %s) = %d\n", a, b, c)
+		c := compareLibC(a, b)
+		fmt.Printf("compareLibC(%s, %s) = %d\n", a, b, c)
 
 		if c == -1 {
-			t.Fatalf("compareClib failed: %s cmp %s: %d", a, b, c)
+			t.Fatalf("compareLibC failed: %s cmp %s: %d", a, b, c)
 		}
 		if c == 2 {
 			a = b
