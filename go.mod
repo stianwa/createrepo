@@ -1,4 +1,4 @@
-module createrepo
+module github.com/stianwa/createrepo
 
 go 1.24.4
 
