@@ -428,14 +428,14 @@ func rpmcmp(s1, s2 string) int {
 		}
 	}
 
-	min := 0
+	minv := 0
 	if len(s[0]) < len(s[1]) {
-		min = len(s[0])
+		minv = len(s[0])
 	} else {
-		min = len(s[1])
+		minv = len(s[1])
 	}
 
-	for i := 0; i < min; i++ {
+	for i := 0; i < minv; i++ {
 		l, r := s[0][i], s[1][i]
 		if l == r {
 			continue

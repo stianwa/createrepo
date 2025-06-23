@@ -105,7 +105,7 @@ func (h *history) Clean(seconds int64) (int, error) {
 // revision represents a single repoMD in the .history.xml file.
 type revision struct {
 	Obsoleted int64   `xml:"obsoleted,omitempty"`
-	Revision  int64   `xml:"revision"`
+	Revision  float64 `xml:"revision"`
 	Data      []*data `xml:"data"`
 }
 

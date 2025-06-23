@@ -12,7 +12,7 @@ type repoMD struct {
 	XMLName      xml.Name `xml:"repomd"`
 	NameSpace    string   `xml:"http://linux.duke.edu/metadata/repo xmlns,attr"`
 	NameSpaceRPM string   `xml:"http://linux.duke.edu/metadata/rpm rpm,attr,omitempty"`
-	Revision     int64    `xml:"revision"`
+	Revision     float64  `xml:"revision"`
 	Data         []*data  `xml:"data"`
 }
 
@@ -70,6 +70,6 @@ func (r *Repo) readRepoMD() (*repoMD, error) {
 func newRepoMD(baseDir string) *repoMD {
 	return &repoMD{
 		baseDir:  baseDir,
-		Revision: time.Now().Unix(),
+		Revision: float64(time.Now().Unix()),
 	}
 }
