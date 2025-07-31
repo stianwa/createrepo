@@ -7,11 +7,12 @@ import (
 
 // comps represents the (yum)comps repodata.
 type comps struct {
-	Type         string        `xml:"-"`
-	XMLName      xml.Name      `xml:"comps"`
-	Group        []*compsGroup `xml:"group"`
-	OpenChecksum *checksum     `xml:"-"`
-	OpenSize     uint64        `xml:"-"`
+	Type         string           `xml:"-"`
+	XMLName      xml.Name         `xml:"comps"`
+	Group        []*compsGroup    `xml:"group"`
+	Category     []*compsCategory `xml:"category,omitempty"`
+	OpenChecksum *checksum        `xml:"-"`
+	OpenSize     uint64           `xml:"-"`
 }
 
 // compsGroup represents a single group in the comps.xml.
@@ -33,6 +34,36 @@ type compsPackageList struct {
 type compsPackageReq struct {
 	Type       string `xml:"type,attr,omitempty"`
 	PackageReq string `xml:",chardata"`
+}
+
+// compsCategory represents a single category in the comps.xml.
+type compsCategory struct {
+	ID           string             `xml:"id,omitempty"`
+	Name         []*nameLang        `xml:"name,omitempty"`
+	Description  []*descriptionLang `xml:"description,omitempty"`
+	DisplayOrder string             `xml:"display_order,omitempty"`
+	GroupList    *compsGroupList    `xml:"grouplist,omitempty"`
+}
+
+// compsGroupList represents a group list in a Category.
+type compsGroupList struct {
+	GroupID []*compsGroupID `xml:"groupid,omitempty"`
+}
+
+// compsGroupID represents a Group ID in a GroupList.
+type compsGroupID struct {
+	//	Type       string `xml:"type,attr,omitempty"`
+	GroupIDEntry string `xml:",chardata"`
+}
+
+// compsEnvironment represents a single environment in the comps.xml.
+type compsEnvironment struct {
+	ID           string             `xml:"id,omitempty"`
+	Name         []*nameLang        `xml:"name,omitempty"`
+	Description  []*descriptionLang `xml:"description,omitempty"`
+	DisplayOrder string             `xml:"display_order,omitempty"`
+	GroupList    *compsGroupList    `xml:"grouplist,omitempty"`
+	OptionList   *compsGroupList    `xml:"optionlist,omitempty"`
 }
 
 // nameLang represents the name in a different language.
