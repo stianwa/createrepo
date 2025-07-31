@@ -7,12 +7,13 @@ import (
 
 // comps represents the (yum)comps repodata.
 type comps struct {
-	Type         string           `xml:"-"`
-	XMLName      xml.Name         `xml:"comps"`
-	Group        []*compsGroup    `xml:"group"`
-	Category     []*compsCategory `xml:"category,omitempty"`
-	OpenChecksum *checksum        `xml:"-"`
-	OpenSize     uint64           `xml:"-"`
+	Type         string              `xml:"-"`
+	XMLName      xml.Name            `xml:"comps"`
+	Group        []*compsGroup       `xml:"group"`
+	Category     []*compsCategory    `xml:"category"`
+	Environment  []*compsEnvironment `xml:"environment"`
+	OpenChecksum *checksum           `xml:"-"`
+	OpenSize     uint64              `xml:"-"`
 }
 
 // compsGroup represents a single group in the comps.xml.
