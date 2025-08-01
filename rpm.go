@@ -25,6 +25,12 @@ type file struct {
 	Path string `xml:",chardata"`
 }
 
+// reqFile represents an additional file-section for files under /etc/
+// or */s?bin/, these are files that can be in RPM requires.
+type reqFile struct {
+	Path string `xml:",chardata"`
+}
+
 // rpmPackage represents the RPM package in primary meta
 type rpmPackage struct {
 	Type        string    `xml:"type,attr"`
@@ -91,6 +97,7 @@ type format struct {
 	Obsoletes  []*entry   `xml:"rpm:obsoletes>rpm:entry,omitempty"`
 	Suggests   []*entry   `xml:"rpm:suggests>rpm:entry,omitempty"`
 	Recommends []*entry   `xml:"rpm:recommends>rpm:entry,omitempty"`
+	Files      []*reqFile `xml:"file,omitempty"`
 }
 
 // license represents package license
@@ -166,6 +173,21 @@ func getPackage(dir, name string) (*rpmPackage, *packageList, error) {
 	suggests, _ := getDependencies(pkg.Suggests(), nil)
 	recommends, _ := getDependencies(pkg.Recommends(), nil)
 
+	var files []*file
+	var reqFiles []*reqFile
+	for _, pfile := range pkg.Files() {
+		f := &file{
+			Path: pfile.Name(),
+		}
+		if pfile.IsDir() {
+			f.Type = "dir"
+		}
+		files = append(files, f)
+		if f.Type != "dir" && (strings.HasPrefix(f.Path, "/etc/") || strings.Contains(f.Path, "/bin/") || strings.Contains(f.Path, "/sbin/")) {
+			reqFiles = append(reqFiles, &reqFile{Path: f.Path})
+		}
+	}
+
 	p := &rpmPackage{
 		Type: "rpm",
 		Name: pkg.Name(),
@@ -202,19 +224,10 @@ func getPackage(dir, name string) (*rpmPackage, *packageList, error) {
 			Obsoletes:  obsoletes,
 			Suggests:   suggests,
 			Recommends: recommends,
+			Files:      reqFiles,
 		},
 	}
 
-	var files []*file
-	for _, pfile := range pkg.Files() {
-		f := &file{
-			Path: pfile.Name(),
-		}
-		if pfile.IsDir() {
-			f.Type = "dir"
-		}
-		files = append(files, f)
-	}
 	f := &packageList{
 		Name:  pkg.Name(),
 		Arch:  pkg.Architecture(),
