@@ -92,7 +92,7 @@ func (r *Repo) getData() (*dataSet, error) {
 		p, f, err := getPackage(r.baseDir, name)
 		if err != nil {
 			if IgnoreBadRPMs {
-				fmt.Fprintf(os.Stderr, "getPackage: %s: %v", name, err)
+				fmt.Fprintf(os.Stderr, "getPackage: %s: %v: error is ignored, but this can cause requirement errors in repo\n", name, err)
 				continue
 			}
 			return nil, fmt.Errorf("getPackage: %s: %v", name, err)
