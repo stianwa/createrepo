@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"fmt"
 	"github.com/ulikunitz/xz"
-	"io"
 )
 
 func compress(data []byte, algo string) (compressed []byte, checksum *checksum, suffix string, err error) {
@@ -36,21 +35,6 @@ func xzCompress(data []byte) ([]byte, error) {
 	}
 
 	if err := z.Close(); err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
-}
-
-func xzDeCompress(data []byte) ([]byte, error) {
-	var buf bytes.Buffer
-
-	z, err := xz.NewReader(bytes.NewReader(data))
-	if err != nil {
-		return nil, err
-	}
-
-	if _, err := io.Copy(io.Writer(&buf), z); err != nil {
 		return nil, err
 	}
 

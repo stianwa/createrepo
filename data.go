@@ -14,7 +14,6 @@ type data struct {
 	Timestamp    *uint64   `xml:"timestamp"`
 	Size         *uint64   `xml:"size"`
 	OpenSize     *uint64   `xml:"open-size,omitempty"`
-	compressed   []byte    `xml:"-"`
 }
 
 // sameChecksumAndExists returns true if the two data elements have the same
@@ -26,11 +25,8 @@ func (d *data) sameChecksumAndExists(checksum *checksum, baseDir string) bool {
 	}
 
 	_, err := os.Stat(baseDir + "/" + d.Location.Href)
-	if err != nil {
-		return false
-	}
 
-	return true
+	return err == nil
 }
 
 // dataSet represents all the repository data gathered from the
@@ -92,7 +88,7 @@ func (r *Repo) getData() (*dataSet, error) {
 	for _, name := range ls {
 		p, f, err := getPackage(r.baseDir, name)
 		if err != nil {
-			return nil, fmt.Errorf("getPackage: %v", err)
+			return nil, fmt.Errorf("getPackage: %s: %v", name, err)
 		}
 		packages = append(packages, p)
 		files = append(files, f)

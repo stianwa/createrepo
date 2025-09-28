@@ -135,7 +135,19 @@ type entry struct {
 	Pre     string `xml:"pre,attr,omitempty"`
 }
 
-func getPackage(dir, name string) (*rpmPackage, *packageList, error) {
+func getPackage(dir, name string) (p *rpmPackage, f *packageList, e error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if err, ok := r.(error); ok {
+				e = err
+			} else {
+				e = fmt.Errorf("panic: %v", r)
+			}
+			p = nil
+			f = nil
+		}
+	}()
+
 	path := filepath.Clean(dir + "/" + name)
 
 	fi, err := os.Stat(path)
@@ -188,7 +200,7 @@ func getPackage(dir, name string) (*rpmPackage, *packageList, error) {
 		}
 	}
 
-	p := &rpmPackage{
+	p = &rpmPackage{
 		Type: "rpm",
 		Name: pkg.Name(),
 		Arch: pkg.Architecture(),
@@ -228,7 +240,7 @@ func getPackage(dir, name string) (*rpmPackage, *packageList, error) {
 		},
 	}
 
-	f := &packageList{
+	f = &packageList{
 		Name:  pkg.Name(),
 		Arch:  pkg.Architecture(),
 		PkgID: checksum.Data,
@@ -542,26 +554,11 @@ func getFlag(f int) (string, string) {
 	return flag, pre
 }
 
-func bits(n int) string {
-	var ret []string
-
-	i := 0
-	for i < 64 {
-		if n&1 == 1 {
-			ret = append(ret, fmt.Sprintf("%d", i))
-		}
-		n = n >> 1
-		i++
-	}
-
-	return strings.Join(ret, ", ")
-}
-
 // getRPMFiles return a list with all files with suffix .rpm
 // within the directory root
 func getRPMFiles(baseDir string) ([]string, error) {
 	var ls []string
-	err := filepath.WalkDir(baseDir, func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(baseDir, func(path string, d fs.DirEntry, _ error) error {
 		if !d.IsDir() && strings.HasSuffix(path, ".rpm") {
 			path, _ = strings.CutPrefix(path, baseDir)
 			ls = append(ls, path)

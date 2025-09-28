@@ -20,9 +20,7 @@ func (h *history) Append(r *repoMD) {
 	e := &revision{
 		Revision: r.Revision,
 	}
-	for _, d := range r.Data {
-		e.Data = append(e.Data, d)
-	}
+	e.Data = append(e.Data, r.Data...)
 
 	for _, ex := range h.Revisions {
 		if ex.Revision == e.Revision {
