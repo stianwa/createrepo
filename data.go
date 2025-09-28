@@ -5,6 +5,9 @@ import (
 	"os"
 )
 
+// IgnoreBadRPMs tells createrepo to ignore RPMs that can't be parsed rather than aborting
+var IgnoreBadRPMs = false
+
 // data represents a data set in repomd.xml
 type data struct {
 	Type         string    `xml:"type,attr"`
@@ -88,6 +91,10 @@ func (r *Repo) getData() (*dataSet, error) {
 	for _, name := range ls {
 		p, f, err := getPackage(r.baseDir, name)
 		if err != nil {
+			if IgnoreBadRPMs {
+				fmt.Fprintf(os.Stderr, "getPackage: %s: %v", name, err)
+				continue
+			}
 			return nil, fmt.Errorf("getPackage: %s: %v", name, err)
 		}
 		packages = append(packages, p)
